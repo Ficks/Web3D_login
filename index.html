@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js canvas - particles - waves</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				margin: 0px;
+				overflow: hidden;
+				background-color: #13194b;
+			}
+			.container{
+				position:fixed;
+				height:330px;
+				left:0;
+				right:0;
+				bottom:0;
+				z-index: 2;
+			}
+
+
+		</style>
+	</head>
+	<body>
+		<script src="js/three.js"></script>
+		<script src="js/Projector.js"></script>
+		<script src="js/CanvasRenderer.js"></script>
+		<script src="js/stats.min.js"></script><!--性能监视器-->
+
+
+
+		<div id="canvas-frame" class="container"></div>
+	</body>
+
+	<script>
+		var SEPARATION = 100, AMOUNTX = 50, AMOUNTY = 50;
+		var camera, scene, renderer;//相机，场景，渲染器
+		var particles, particle, count = 0;
+		var mouseX = 0, mouseY = -438;//设置初始位置
+		var windowHalfX = window.innerWidth / 2;
+		var windowHalfY = window.innerHeight / 2;
+		init();
+		animate();
+		function init() {
+			camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
+			camera.position.z = 1000;
+
+			console.log(camera.position.x,camera.position.y,camera.position.z)
+			scene = new THREE.Scene();
+			particles = new Array();
+			var material = new THREE.SpriteMaterial( {
+				color: 0x097bdb,
+			} );
+			var i = 0;
+			for ( var ix = 0; ix < AMOUNTX; ix ++ ) {
+				for ( var iy = 0; iy < AMOUNTY; iy ++ ) {
+					particle = particles[ i ++ ] = new THREE.Sprite( material );
+					particle.position.x = ix * SEPARATION - ( ( AMOUNTX * SEPARATION ) / 2 );
+					particle.position.z = iy * SEPARATION - ( ( AMOUNTY * SEPARATION ) / 2 );
+					scene.add( particle );
+				}
+			}
+
+			var width = document.getElementById('canvas-frame').clientWidth;
+			var height = document.getElementById('canvas-frame').clientHeight;
+			renderer = new THREE.WebGLRenderer({
+				antialias : true,
+				alpha: true//设置背景透明
+			});
+			renderer.setSize(width, height);
+			document.getElementById('canvas-frame').appendChild(renderer.domElement);
+
+			console.log("renderer.domElement"+renderer.domElement)
+
+			renderer.setClearColor(0x13194b);//设置背景色
+			document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+			document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+			document.addEventListener( 'touchmove', onDocumentTouchMove, false );
+			window.addEventListener( 'resize', onWindowResize, false );
+
+
+			camera.position.x = 133.99999999999972;
+			camera.position.y = 437.99999999999943;
+			camera.lookAt( scene.position );
+			renderer.render( scene, camera );
+		}
+		function onWindowResize() {
+			windowHalfX = window.innerWidth / 2;
+			windowHalfY = window.innerHeight / 2;
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+			renderer.setSize( window.innerWidth, window.innerHeight );
+		}
+
+		function onDocumentMouseMove( event ) {
+			mouseX = event.clientX - windowHalfX;
+			mouseY = -438;
+		}
+		function onDocumentTouchStart( event ) {
+			if ( event.touches.length === 1 ) {
+				event.preventDefault();
+				mouseX = event.touches[ 0 ].pageX - windowHalfX;
+				mouseY = event.touches[ 0 ].pageY - windowHalfY;
+			}
+		}
+		function onDocumentTouchMove( event ) {
+			if ( event.touches.length === 1 ) {
+				event.preventDefault();
+				mouseX = event.touches[ 0 ].pageX - windowHalfX;
+				mouseY = event.touches[ 0 ].pageY - windowHalfY;
+			}
+		}
+
+		function animate() {
+			requestAnimationFrame( animate );
+			render();
+		}
+		function render() {//移动相机形成动画
+			camera.position.x += ( mouseX - camera.position.x ) * .05;
+			camera.position.y += ( - mouseY - camera.position.y ) * .05;
+			camera.lookAt( scene.position );
+			var i = 0;
+			for ( var ix = 0; ix < AMOUNTX; ix ++ ) {
+				for ( var iy = 0; iy < AMOUNTY; iy ++ ) {
+					particle = particles[ i++ ];
+					particle.position.y = ( Math.sin( ( ix + count ) * 0.3 ) * 50 ) +
+							( Math.sin( ( iy + count ) * 0.5 ) * 50 );
+					particle.scale.x = particle.scale.y = ( Math.sin( ( ix + count ) * 0.3 ) + 1 ) * 4 +
+							( Math.sin( ( iy + count ) * 0.5 ) + 1 ) * 4;
+				}
+			}
+
+			renderer.render( scene, camera );
+			count += 0.1;
+		}
+	</script>
+
+</html>
